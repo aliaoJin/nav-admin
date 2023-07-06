@@ -50,8 +50,8 @@ class PureHttp {
   /** 重连原始请求 */
   private static retryOriginalRequest(config: PureHttpRequestConfig) {
     return new Promise(resolve => {
-      PureHttp.requests.push((token: string) => {
-        config.headers["Authorization"] = formatToken(token);
+      PureHttp.requests.push((token?: string) => {
+        // config.headers["Authorization"] = formatToken(token);
         resolve(config);
       });
     });
@@ -74,40 +74,42 @@ class PureHttp {
         }
         /** 请求白名单，放置一些不需要token的接口（通过设置请求白名单，防止token过期后再请求造成的死循环问题） */
         const whiteList = ["/refreshToken", "/login"];
-        return whiteList.some(v => config.url.indexOf(v) > -1)
-          ? config
-          : new Promise(resolve => {
-              const data = getToken();
-              if (data) {
-                const now = new Date().getTime();
-                const expired = parseInt(data.expires) - now <= 0;
-                if (expired) {
-                  if (!PureHttp.isRefreshing) {
-                    PureHttp.isRefreshing = true;
-                    // token过期刷新
-                    useUserStoreHook()
-                      .handRefreshToken({ refreshToken: data.refreshToken })
-                      .then(res => {
-                        const token = res.data.accessToken;
-                        config.headers["Authorization"] = formatToken(token);
-                        PureHttp.requests.forEach(cb => cb(token));
-                        PureHttp.requests = [];
-                      })
-                      .finally(() => {
-                        PureHttp.isRefreshing = false;
-                      });
-                  }
-                  resolve(PureHttp.retryOriginalRequest(config));
-                } else {
-                  config.headers["Authorization"] = formatToken(
-                    data.accessToken
-                  );
-                  resolve(config);
-                }
-              } else {
-                resolve(config);
-              }
-            });
+
+        return config;
+        // return whiteList.some(v => config.url.indexOf(v) > -1)
+        //   ? config
+        //   : new Promise(resolve => {
+        //       const data = getToken();
+        //       if (data) {
+        //         const now = new Date().getTime();
+        //         const expired = parseInt(data.expires) - now <= 0;
+        //         if (expired) {
+        //           if (!PureHttp.isRefreshing) {
+        //             PureHttp.isRefreshing = true;
+        //             // token过期刷新
+        //             useUserStoreHook()
+        //               .handRefreshToken({ refreshToken: data.refreshToken })
+        //               .then(res => {
+        //                 const token = res.data.accessToken;
+        //                 config.headers["Authorization"] = formatToken(token);
+        //                 PureHttp.requests.forEach(cb => cb(token));
+        //                 PureHttp.requests = [];
+        //               })
+        //               .finally(() => {
+        //                 PureHttp.isRefreshing = false;
+        //               });
+        //           }
+        //           resolve(PureHttp.retryOriginalRequest(config));
+        //         } else {
+        //           config.headers["Authorization"] = formatToken(
+        //             data.accessToken
+        //           );
+        //           resolve(config);
+        //         }
+        //       } else {
+        //         resolve(config);
+        //       }
+        //     });
       },
       error => {
         return Promise.reject(error);

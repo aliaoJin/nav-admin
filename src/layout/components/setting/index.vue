@@ -8,20 +8,9 @@ import {
   nextTick,
   onBeforeMount
 } from "vue";
-import {
-  useDark,
-  debounce,
-  useGlobal,
-  storageLocal,
-  storageSession
-} from "@pureadmin/utils";
-import { getConfig } from "@/config";
-import { useRouter } from "vue-router";
+import { useDark, debounce, useGlobal } from "@pureadmin/utils";
 import panel from "../panel/index.vue";
 import { emitter } from "@/utils/mitt";
-import { resetRouter } from "@/router";
-import { removeToken } from "@/utils/auth";
-import { routerArrays } from "@/layout/types";
 import { useNav } from "@/layout/hooks/useNav";
 import { useAppStoreHook } from "@/store/modules/app";
 import { toggleTheme } from "@pureadmin/theme/dist/browser-utils";
@@ -31,9 +20,6 @@ import { useDataThemeChange } from "@/layout/hooks/useDataThemeChange";
 import dayIcon from "@/assets/svg/day.svg?component";
 import darkIcon from "@/assets/svg/dark.svg?component";
 import Check from "@iconify-icons/ep/check";
-import Logout from "@iconify-icons/ri/logout-circle-r-line";
-
-const router = useRouter();
 const { isDark } = useDark();
 const { device, tooltipEffect } = useNav();
 const { $storage } = useGlobal<GlobalPropertiesApi>();
@@ -47,11 +33,9 @@ const {
   layoutTheme,
   themeColors,
   dataThemeChange,
-  setEpThemeColor,
   setLayoutThemeColor
 } = useDataThemeChange();
 
-/* body添加layout属性，作用于src/style/sidebar.scss */
 if (unref(layoutTheme)) {
   const layout = unref(layoutTheme).layout;
   const theme = unref(layoutTheme).theme;
@@ -128,22 +112,6 @@ const multiTagsCacheChange = () => {
   storageConfigureChange("multiTagsCache", multiTagsCache);
   useMultiTagsStoreHook().multiTagsCacheChange(multiTagsCache);
 };
-
-/** 清空缓存并返回登录页 */
-function onReset() {
-  removeToken();
-  storageLocal().clear();
-  storageSession().clear();
-  const { Grey, Weak, MultiTagsCache, EpThemeColor, Layout } = getConfig();
-  useAppStoreHook().setLayout(Layout);
-  setEpThemeColor(EpThemeColor);
-  useMultiTagsStoreHook().multiTagsCacheChange(MultiTagsCache);
-  toggleClass(Grey, "html-grey", document.querySelector("html"));
-  toggleClass(Weak, "html-weakness", document.querySelector("html"));
-  router.push("/login");
-  useMultiTagsStoreHook().handleTags("equal", [...routerArrays]);
-  resetRouter();
-}
 
 function onChange(label) {
   storageConfigureChange("showModel", label);
@@ -386,19 +354,6 @@ onBeforeMount(() => {
     </ul>
 
     <el-divider />
-    <el-button
-      type="danger"
-      style="width: 90%; margin: 24px 15px"
-      @click="onReset"
-    >
-      <IconifyIconOffline
-        :icon="Logout"
-        width="15"
-        height="15"
-        style="margin-right: 4px"
-      />
-      清空缓存并返回登录页
-    </el-button>
   </panel>
 </template>
 

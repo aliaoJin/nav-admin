@@ -28,19 +28,18 @@ export const useUserStore = defineStore({
       this.roles = roles;
     },
     /** 登入 */
-    async loginByUsername(data) {
-      return new Promise<UserResult>((resolve, reject) => {
-        getLogin(data)
-          .then(data => {
-            if (data) {
-              setToken(data.data);
-              resolve(data);
-            }
-          })
-          .catch(error => {
-            reject(error);
-          });
-      });
+    async loginByUsername() {
+      const res: any = {
+        success: true,
+        data: {
+          username: "admin",
+          roles: ["admin"],
+          accessToken: "eyJhbGciOiJIUzUxMiJ9.admin",
+          refreshToken: "eyJhbGciOiJIUzUxMiJ9.adminRefresh",
+          expires: "2023/10/30 00:00:00"
+        }
+      };
+      setToken(res.data);
     },
     /** 前端登出（不调用接口） */
     logOut() {

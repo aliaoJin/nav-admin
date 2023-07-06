@@ -83,11 +83,12 @@ function isOneOfArray(a: Array<string>, b: Array<string>) {
 
 /** 从sessionStorage里取出当前登陆用户的角色roles，过滤无权限的菜单 */
 function filterNoPermissionTree(data: RouteComponent[]) {
-  const currentRoles =
-    storageSession().getItem<DataInfo<number>>(sessionKey)?.roles ?? [];
-  const newTree = cloneDeep(data).filter((v: any) =>
-    isOneOfArray(v.meta?.roles, currentRoles)
-  );
+  // const currentRoles =
+  //   storageSession().getItem<DataInfo<number>>(sessionKey)?.roles ?? [];
+  // const newTree = cloneDeep(data).filter((v: any) =>
+  //   isOneOfArray(v.meta?.roles, currentRoles)
+  // );
+  const newTree = cloneDeep(data);
   newTree.forEach(
     (v: any) => v.children && (v.children = filterNoPermissionTree(v.children))
   );
@@ -180,9 +181,42 @@ function handleAsyncRoutes(routeList) {
   }
   addPathMatch();
 }
-
+const resData = [
+  {
+    path: "/permission",
+    meta: {
+      title: "权限管理",
+      icon: "lollipop",
+      rank: 10
+    },
+    children: [
+      {
+        path: "/permission/page/index",
+        name: "PermissionPage",
+        meta: {
+          title: "页面权限",
+          roles: ["admin", "common"]
+        }
+      },
+      {
+        path: "/permission/button/index",
+        name: "PermissionButton",
+        meta: {
+          title: "按钮权限",
+          roles: ["admin", "common"],
+          auths: ["btn_add", "btn_edit", "btn_delete"]
+        }
+      }
+    ]
+  }
+];
 /** 初始化路由（`new Promise` 写法防止在异步请求中造成无限循环）*/
 function initRouter() {
+  console.log(
+    "getConfig()?.CachingAsyncRoutes===",
+    getConfig()?.CachingAsyncRoutes
+  );
+  //判断 缓存异步路由 是否存在
   if (getConfig()?.CachingAsyncRoutes) {
     // 开启动态路由缓存本地sessionStorage
     const key = "async-routes";
@@ -194,19 +228,27 @@ function initRouter() {
       });
     } else {
       return new Promise(resolve => {
-        getAsyncRoutes().then(({ data }) => {
-          handleAsyncRoutes(cloneDeep(data));
-          storageSession().setItem(key, data);
-          resolve(router);
-        });
+        handleAsyncRoutes(cloneDeep(resData));
+        storageSession().setItem(key, resData);
+        resolve(router);
+        // getAsyncRoutes().then(({ data }) => {
+        //   console.log("获取路由1==", data);
+        //   handleAsyncRoutes(cloneDeep(data));
+        //   storageSession().setItem(key, data);
+        //   resolve(router);
+        // });
       });
     }
   } else {
     return new Promise(resolve => {
-      getAsyncRoutes().then(({ data }) => {
-        handleAsyncRoutes(cloneDeep(data));
-        resolve(router);
-      });
+      handleAsyncRoutes(cloneDeep(resData));
+      resolve(router);
+      // getAsyncRoutes().then(({ data }) => {
+      //   console.log('获取路由==',data);
+
+      //   handleAsyncRoutes(cloneDeep(data));
+      //   resolve(router);
+      // });
     });
   }
 }
