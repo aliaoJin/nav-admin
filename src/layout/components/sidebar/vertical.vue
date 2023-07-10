@@ -23,8 +23,6 @@ const { device, pureApp, isCollapse, menuSelect, toggleSideBar } = useNav();
 const subMenuData = ref([]);
 
 const menuData = computed(() => {
-  console.log("vertical=====", usePermissionStoreHook().wholeMenus);
-
   return pureApp.layout === "mix" && device.value !== "mobile"
     ? subMenuData.value
     : usePermissionStoreHook().wholeMenus;

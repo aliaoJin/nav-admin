@@ -66,8 +66,6 @@ function filterTree(data: RouteComponent[]) {
       v.children = filterTree(v.children);
     }
   });
-  console.log("newTree===", newTree);
-
   return newTree;
 }
 
@@ -219,10 +217,6 @@ const resData = [
 ];
 /** 初始化路由（`new Promise` 写法防止在异步请求中造成无限循环）*/
 function initRouter() {
-  console.log(
-    "getConfig()?.CachingAsyncRoutes===",
-    getConfig()?.CachingAsyncRoutes
-  );
   //判断 缓存异步路由 是否存在
   if (getConfig()?.CachingAsyncRoutes) {
     // 开启动态路由缓存本地sessionStorage
