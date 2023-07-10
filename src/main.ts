@@ -44,6 +44,8 @@ app.component("FontIcon", FontIcon);
 import { Auth } from "@/components/ReAuth";
 app.component("Auth", Auth);
 
+app.config.globalProperties.$log = console.log.bind(console);
+
 getServerConfig(app).then(async config => {
   app.use(router);
   await router.isReady();

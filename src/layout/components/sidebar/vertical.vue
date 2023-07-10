@@ -23,11 +23,12 @@ const { device, pureApp, isCollapse, menuSelect, toggleSideBar } = useNav();
 const subMenuData = ref([]);
 
 const menuData = computed(() => {
+  console.log("vertical=====", usePermissionStoreHook().wholeMenus);
+
   return pureApp.layout === "mix" && device.value !== "mobile"
     ? subMenuData.value
     : usePermissionStoreHook().wholeMenus;
 });
-
 const loading = computed(() =>
   pureApp.layout === "mix" ? false : menuData.value.length === 0 ? true : false
 );
@@ -50,7 +51,7 @@ function getSubMenuData() {
     parentPathArr[0] || path,
     usePermissionStoreHook().wholeMenus
   );
-  if (!parenetRoute?.children) return;
+  if (!parenetRoute?.children?.length) return;
   subMenuData.value = parenetRoute?.children;
 }
 

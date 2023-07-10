@@ -184,7 +184,7 @@ function resolvePath(routePath) {
   <el-menu-item
     v-if="
       hasOneShowingChild(props.item.children, props.item) &&
-      (!onlyOneChild.children || onlyOneChild.noShowingChildren)
+      (!onlyOneChild?.children?.length || onlyOneChild?.noShowingChildren)
     "
     :index="resolvePath(onlyOneChild.path)"
     :class="{ 'submenu-title-noDropdown': !isNest }"

@@ -28,6 +28,7 @@ const modulesRoutes = import.meta.glob("/src/views/**/*.{vue,tsx}");
 
 // 动态路由
 import { getAsyncRoutes } from "@/api/routes";
+import { getMenuAll } from "@/api/index";
 
 function handRank(routeInfo: any) {
   const { name, path, parentId, meta } = routeInfo;
@@ -57,18 +58,27 @@ function filterTree(data: RouteComponent[]) {
   const newTree = cloneDeep(data).filter(
     (v: { meta: { showLink: boolean } }) => v.meta?.showLink !== false
   );
-  newTree.forEach(
-    (v: { children }) => v.children && (v.children = filterTree(v.children))
-  );
+  // newTree.forEach(
+  //   (v: any) => v.children.length && (v.children = filterTree(v.children))
+  // ););
+  newTree.forEach((v: any) => {
+    if (v.children & v.children?.length) {
+      v.children = filterTree(v.children);
+    }
+  });
+  console.log("newTree===", newTree);
+
   return newTree;
 }
 
 /** 过滤children长度为0的的目录，当目录下没有菜单时，会过滤此目录，目录没有赋予roles权限，当目录下只要有一个菜单有显示权限，那么此目录就会显示 */
 function filterChildrenTree(data: RouteComponent[]) {
   const newTree = cloneDeep(data).filter((v: any) => v?.children?.length !== 0);
-  newTree.forEach(
-    (v: { children }) => v.children && (v.children = filterTree(v.children))
-  );
+  newTree.forEach((v: any) => {
+    if (v.children & v.children?.length) {
+      v.children = filterTree(v.children);
+    }
+  });
   return newTree;
 }
 
@@ -83,15 +93,12 @@ function isOneOfArray(a: Array<string>, b: Array<string>) {
 
 /** 从sessionStorage里取出当前登陆用户的角色roles，过滤无权限的菜单 */
 function filterNoPermissionTree(data: RouteComponent[]) {
-  // const currentRoles =
-  //   storageSession().getItem<DataInfo<number>>(sessionKey)?.roles ?? [];
-  // const newTree = cloneDeep(data).filter((v: any) =>
-  //   isOneOfArray(v.meta?.roles, currentRoles)
-  // );
   const newTree = cloneDeep(data);
-  newTree.forEach(
-    (v: any) => v.children && (v.children = filterNoPermissionTree(v.children))
-  );
+  newTree.forEach((v: any) => {
+    if (v.children & v.children?.length) {
+      v.children = filterNoPermissionTree(v.children);
+    }
+  });
   return filterChildrenTree(newTree);
 }
 
@@ -228,8 +235,12 @@ function initRouter() {
       });
     } else {
       return new Promise(resolve => {
-        handleAsyncRoutes(cloneDeep(resData));
-        storageSession().setItem(key, resData);
+        // handleAsyncRoutes(cloneDeep(resData));
+        // storageSession().setItem(key, resData);
+        getMenuAll().then((res: any) => {
+          handleAsyncRoutes(cloneDeep(res?.data?.lists));
+          storageSession().setItem(key, res?.data?.lists);
+        });
         resolve(router);
         // getAsyncRoutes().then(({ data }) => {
         //   console.log("获取路由1==", data);
@@ -241,16 +252,18 @@ function initRouter() {
     }
   } else {
     return new Promise(resolve => {
-      handleAsyncRoutes(cloneDeep(resData));
-      resolve(router);
-      // getAsyncRoutes().then(({ data }) => {
-      //   console.log('获取路由==',data);
-
-      //   handleAsyncRoutes(cloneDeep(data));
-      //   resolve(router);
-      // });
+      // 获取路由菜单
+      getMenuAll().then((res: any) => {
+        handleAsyncRoutes(cloneDeep(res?.data?.lists));
+        resolve(router);
+      });
     });
   }
+}
+
+async function getMenu() {
+  const res: any = await getMenuAll();
+  return res.data.lists;
 }
 
 /**
